@@ -363,6 +363,7 @@ type VoiceStateUpdate struct {
 	*VoiceState
 	// BeforeUpdate will be nil if the VoiceState was not previously cached in the state cache.
 	BeforeUpdate *VoiceState `json:"-"`
+	Member       *Member     `json:"member"`
 }
 
 // MessageDeleteBulk is the data for a MessageDeleteBulk event
