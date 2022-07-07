@@ -33,6 +33,7 @@ const (
 type ApplicationCommand struct {
 	ID                string                 `json:"id,omitempty"`
 	ApplicationID     string                 `json:"application_id,omitempty"`
+	GuildID           string                 `json:"guild_id,omitempty"`
 	Version           string                 `json:"version,omitempty"`
 	Type              ApplicationCommandType `json:"type,omitempty"`
 	Name              string                 `json:"name"`
@@ -206,6 +207,9 @@ type Interaction struct {
 	// The message on which interaction was used.
 	// NOTE: this field is only filled when a button click triggered the interaction. Otherwise it will be nil.
 	Message *Message `json:"message"`
+
+	// Bitwise set of permissions the app or bot has within the channel the interaction was sent from
+	AppPermissions int64 `json:"app_permissions,string"`
 
 	// The member who invoked this interaction.
 	// NOTE: this field is only filled when the slash command was invoked in a guild;
@@ -534,8 +538,10 @@ type InteractionResponseData struct {
 	Components      []MessageComponent      `json:"components"`
 	Embeds          []*MessageEmbed         `json:"embeds"`
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Flags           uint64                  `json:"flags,omitempty"`
 	Files           []*File                 `json:"-"`
+
+	// NOTE: only MessageFlagsSuppressEmbeds and MessageFlagsEphemeral can be set.
+	Flags MessageFlags `json:"flags,omitempty"`
 
 	// NOTE: autocomplete interaction only.
 	Choices []*ApplicationCommandOptionChoice `json:"choices,omitempty"`

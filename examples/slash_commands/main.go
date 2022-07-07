@@ -476,10 +476,11 @@ var (
 				return
 			}
 			time.AfterFunc(time.Second*5, func() {
+				content := content + "\n\nWell, now you know how to create and edit responses. " +
+					"But you still don't know how to delete them... so... wait 10 seconds and this " +
+					"message will be deleted."
 				_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-					Content: content + "\n\nWell, now you know how to create and edit responses. " +
-						"But you still don't know how to delete them... so... wait 10 seconds and this " +
-						"message will be deleted.",
+					Content: &content,
 				})
 				if err != nil {
 					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
@@ -502,7 +503,7 @@ var (
 					// Note: this isn't documented, but you can use that if you want to.
 					// This flag just allows you to create messages visible only for the caller of the command
 					// (user who triggered the command)
-					Flags:   1 << 6,
+					Flags:   discordgo.MessageFlagsEphemeral,
 					Content: "Surprise!",
 				},
 			})
@@ -517,8 +518,9 @@ var (
 			}
 			time.Sleep(time.Second * 5)
 
+			content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
 			s.FollowupMessageEdit(i.Interaction, msg.ID, &discordgo.WebhookEdit{
-				Content: "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted.",
+				Content: &content,
 			})
 
 			time.Sleep(time.Second * 10)

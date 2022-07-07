@@ -1729,6 +1729,28 @@ func (s *Session) ChannelMessageSendReply(channelID string, content string, refe
 	})
 }
 
+// ChannelMessageSendEmbedReply sends a message to the given channel with reference data and embedded data.
+// channelID : The ID of a Channel.
+// embed   : The embed data to send.
+// reference : The message reference to send.
+func (s *Session) ChannelMessageSendEmbedReply(channelID string, embed *MessageEmbed, reference *MessageReference) (*Message, error) {
+	return s.ChannelMessageSendEmbedsReply(channelID, []*MessageEmbed{embed}, reference)
+}
+
+// ChannelMessageSendEmbedsReply sends a message to the given channel with reference data and multiple embedded data.
+// channelID : The ID of a Channel.
+// embeds    : The embeds data to send.
+// reference : The message reference to send.
+func (s *Session) ChannelMessageSendEmbedsReply(channelID string, embeds []*MessageEmbed, reference *MessageReference) (*Message, error) {
+	if reference == nil {
+		return nil, fmt.Errorf("reply attempted with nil message reference")
+	}
+	return s.ChannelMessageSendComplex(channelID, &MessageSend{
+		Embeds:    embeds,
+		Reference: reference,
+	})
+}
+
 // ChannelMessageEdit edits an existing message, replacing it entirely with
 // the given content.
 // channelID  : The ID of a Channel
@@ -2792,7 +2814,7 @@ func (s *Session) ApplicationCommands(appID, guildID string) (cmd []*Application
 		endpoint = EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	body, err := s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+	body, err := s.RequestWithBucketID("GET", endpoint+"?with_localizations=true", nil, "GET "+endpoint)
 	if err != nil {
 		return
 	}
@@ -3087,5 +3109,82 @@ func (s *Session) GuildScheduledEventUsers(guildID, eventID string, limit int, w
 	}
 
 	err = unmarshal(body, &st)
+	return
+}
+
+// ----------------------------------------------------------------------
+// Functions specific to auto moderation
+// ----------------------------------------------------------------------
+
+// AutoModerationRules returns a list of auto moderation rules.
+// guildID : ID of the guild
+func (s *Session) AutoModerationRules(guildID string) (st []*AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRules(guildID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRule returns an auto moderation rule.
+// guildID : ID of the guild
+// ruleID  : ID of the auto moderation rule
+func (s *Session) AutoModerationRule(guildID, ruleID string) (st *AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRuleCreate creates an auto moderation rule with the given data and returns it.
+// guildID : ID of the guild
+// rule    : Rule data
+func (s *Session) AutoModerationRuleCreate(guildID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRules(guildID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("POST", endpoint, rule, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRuleEdit edits and returns the updated auto moderation rule.
+// guildID : ID of the guild
+// ruleID  : ID of the auto moderation rule
+// rule    : New rule data
+func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoModerationRule) (st *AutoModerationRule, err error) {
+	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+
+	var body []byte
+	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, endpoint)
+	if err != nil {
+		return
+	}
+
+	err = unmarshal(body, &st)
+	return
+}
+
+// AutoModerationRuleDelete deletes an auto moderation rule.
+// guildID : ID of the guild
+// ruleID  : ID of the auto moderation rule
+func (s *Session) AutoModerationRuleDelete(guildID, ruleID string) (err error) {
+	endpoint := EndpointGuildAutoModerationRule(guildID, ruleID)
+	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, endpoint)
 	return
 }
